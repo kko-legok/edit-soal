@@ -1,0 +1,1009 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pembuat Soal Ujian</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Plus Jakarta Sans', sans-serif; }
+    @media print {
+      .no-print { display: none !important; }
+      .print-area { box-shadow: none !important; margin: 0 !important; padding: 0 !important; }
+    }
+    .paper-a4 { width: 210mm; min-height: 297mm; }
+    .paper-f4 { width: 215mm; min-height: 330mm; }
+    .paper-legal { width: 216mm; min-height: 356mm; }
+    
+    /* Custom Scrollbar for Editor */
+    .question-text::-webkit-scrollbar { width: 6px; }
+    .question-text::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    .question-text::-webkit-scrollbar-track { background: #1e293b; }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-slate-900 text-slate-100 overflow-auto">
+  <div id="app" class="w-full min-h-full flex flex-col lg:flex-row">
+   <div class="no-print w-full lg:w-[420px] lg:min-h-full bg-slate-800 border-r border-slate-700 p-6 overflow-y-auto space-y-5 flex-shrink-0">
+    <div>
+     <h1 id="appTitle" class="text-2xl font-800 text-emerald-400">Aplikasi Pembuat Soal</h1>
+     <p class="text-slate-400 text-sm mt-1">Generator soal ujian siap cetak</p>
+    </div>
+    
+    <fieldset class="space-y-3 border border-slate-600 rounded-xl p-4">
+     <legend class="text-emerald-400 font-700 text-sm px-2">KOP Sekolah</legend> 
+     <label class="w-full py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 border border-slate-500 text-white font-600 text-xs flex items-center justify-center gap-2 transition cursor-pointer">
+       <i data-lucide="upload" style="width:14px;height:14px;"></i> Upload Kop (Gambar)
+       <input type="file" id="kopUpload" accept="image/*" class="hidden">
+     </label>
+     <div id="kopPreviewContainer" class="hidden text-xs text-emerald-400 flex items-center gap-2 mt-2">
+       <i data-lucide="check-circle" style="width:14px;height:14px;"></i> Kop berhasil dimuat.
+     </div>
+     <button id="resetKopBtn" class="hidden text-[10px] text-red-400 underline mt-1 hover:text-red-300">Reset ke Default</button>
+    </fieldset>
+
+    <fieldset class="space-y-3 border border-slate-600 rounded-xl p-4">
+     <legend class="text-emerald-400 font-700 text-sm px-2">Informasi Ujian</legend>
+     <div class="grid grid-cols-2 gap-3">
+       <div>
+         <label class="text-xs font-600 text-slate-300" for="judulUjian">Judul Ujian</label> 
+         <input id="judulUjian" type="text" value="ULANGAN TENGAH SEMESTER" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-sm text-white mt-1 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+       </div>
+       <div>
+         <label class="text-xs font-600 text-slate-300" for="tahunPelajaran">Tahun Pelajaran</label> 
+         <input id="tahunPelajaran" type="text" value="Tahun Pelajaran 2024/2025" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-sm text-white mt-1 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+       </div>
+     </div>
+     <div>
+      <label class="text-xs font-600 text-slate-300" for="mapel">Mata Pelajaran</label> 
+      <input id="mapel" type="text" value="Pendidikan Pancasila" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-sm text-white mt-1 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+     </div>
+     <div class="grid grid-cols-2 gap-3">
+      <div>
+       <label class="text-xs font-600 text-slate-300" for="kelas">Kelas</label> 
+       <input id="kelas" type="text" value="V (Lima)" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-sm text-white mt-1 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+      </div>
+      <div>
+       <label class="text-xs font-600 text-slate-300" for="waktu">Waktu</label> 
+       <input id="waktu" type="text" value="90 Menit" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-sm text-white mt-1 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+      </div>
+     </div>
+     <div>
+      <label class="text-xs font-600 text-slate-300" for="tanggal">Tanggal</label> 
+      <input id="tanggal" type="date" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-sm text-white mt-1 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+     </div>
+    </fieldset>
+
+    <fieldset class="space-y-3 border border-slate-600 rounded-xl p-4">
+     <legend class="text-emerald-400 font-700 text-sm px-2">Ukuran & Halaman Kertas</legend> 
+     <div>
+       <label class="text-xs font-600 text-slate-300 block mb-1">Pilih Kertas</label>
+       <select id="paperSize" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"> 
+        <option value="a4">A4 (210 x 297 mm)</option> 
+        <option value="f4">F4 / Folio (215 x 330 mm)</option> 
+        <option value="legal">Legal (216 x 356 mm)</option> 
+       </select>
+     </div>
+     <div class="mt-3">
+       <label class="text-xs font-600 text-slate-300 block mb-1">Paksa Jumlah Halaman (Auto-Scaling)</label>
+       <select id="pageCount" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+         <option value="auto">Otomatis (Berdasarkan Konten)</option>
+         <option value="1">Paskan ke 1 Halaman</option>
+         <option value="2">Paskan ke 2 Halaman</option>
+         <option value="3">Paskan ke 3 Halaman</option>
+         <option value="4">Paskan ke 4 Halaman</option>
+       </select>
+     </div>
+    </fieldset>
+
+    <fieldset class="border border-slate-600 rounded-xl p-4 space-y-4">
+     <legend class="text-emerald-400 font-700 text-sm px-2">Pengaturan Soal</legend>
+     <div id="sectionsContainer"></div>
+     <button id="addSectionBtn" class="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-600 text-sm flex items-center justify-center gap-2 transition"> 
+       <i data-lucide="plus" style="width:16px;height:16px;"></i> Tambah Bagian Soal 
+     </button>
+    </fieldset>
+
+    <div class="space-y-3 pt-3 border-t border-slate-700">
+     <button id="previewBtn" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-700 text-sm flex items-center justify-center gap-2 transition"> 
+      <i data-lucide="eye" style="width:16px;height:16px;"></i> Preview &amp; Cetak 
+     </button>
+     <div class="grid grid-cols-2 gap-3">
+      <button id="exportBtn" class="py-2.5 rounded-lg bg-slate-600 hover:bg-slate-500 text-white font-600 text-sm flex items-center justify-center gap-2 transition"> 
+       <i data-lucide="download" style="width:14px;height:14px;"></i> Export JSON 
+      </button> 
+      <label class="py-2.5 rounded-lg bg-slate-600 hover:bg-slate-500 text-white font-600 text-sm flex items-center justify-center gap-2 transition cursor-pointer"> 
+       <i data-lucide="upload" style="width:14px;height:14px;"></i> Import JSON 
+       <input type="file" id="importFile" accept=".json" class="hidden"> 
+      </label>
+     </div>
+     <div class="grid grid-cols-2 gap-3">
+      <label class="py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-600 text-sm flex items-center justify-center gap-2 transition cursor-pointer"> 
+       <i data-lucide="file-text" style="width:14px;height:14px;"></i> Import Word/PDF 
+       <input type="file" id="importDocFile" accept=".docx,.pdf,.doc" class="hidden"> 
+      </label> 
+      <button id="downloadTemplateBtn" class="py-2.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-600 text-sm flex items-center justify-center gap-2 transition"> 
+       <i data-lucide="download" style="width:14px;height:14px;"></i> Template Docx 
+      </button>
+     </div>
+    </div>
+   </div>
+   
+   <div class="flex-1 p-6 overflow-auto flex justify-center">
+    <div id="previewArea" class="bg-white text-black rounded-lg shadow-2xl pt-[8mm] px-[15mm] pb-[15mm] paper-a4 print-area" style="font-size:12px; line-height:1.6;">
+     <div id="printContent"></div>
+    </div>
+   </div>
+  </div>
+
+  <div id="editQuestionsDialog" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 no-print hidden" style="z-index:10000;">
+   <div class="bg-slate-800 rounded-xl p-6 w-full max-w-3xl border border-slate-700 flex flex-col h-[90vh]">
+    <div class="flex justify-between items-center mb-4">
+     <h2 class="text-xl font-700 text-emerald-400">Edit Teks & Gambar Soal</h2>
+     <button id="closeEditQuestionsBtn" class="text-slate-400 hover:text-white"><i data-lucide="x" style="width:20px;height:20px;"></i></button>
+    </div>
+    <div id="editQuestionsContainer" class="flex-1 overflow-y-auto space-y-4 pr-2 mb-4"></div>
+    <div class="flex gap-3 pt-4 border-t border-slate-700 mt-auto">
+     <button id="saveEditQuestionsBtn" class="flex-1 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-700 text-sm">Simpan Perubahan</button>
+     <button id="cancelEditQuestionsBtn" class="flex-1 py-3 rounded-lg bg-slate-600 hover:bg-slate-500 text-white font-700 text-sm">Batal</button>
+    </div>
+   </div>
+  </div>
+
+  <div id="toast" class="fixed bottom-6 right-6 bg-emerald-500 text-white px-5 py-3 rounded-xl shadow-lg font-600 text-sm transform translate-y-20 opacity-0 transition-all duration-300 no-print" style="z-index:9999;"></div>
+  
+  <div id="importDialog" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 no-print hidden" style="z-index:10000;">
+   <div class="bg-slate-800 rounded-xl p-6 w-full max-w-lg border border-slate-700 max-h-[90vh] flex flex-col">
+    <h2 class="text-xl font-700 text-emerald-400 mb-2">Import Soal dari Document</h2>
+    <p class="text-xs text-slate-300 mb-4 bg-slate-700 p-3 rounded-lg border border-slate-600 leading-relaxed">
+      ✅ <strong class="text-emerald-400">Peringatan:</strong> Pastikan Anda telah mengatur "No. Awal" dan "No. Akhir" di panel kiri sesuai dengan jumlah soal yang diimport. Soal akan otomatis didistribusikan.
+    </p>
+    <div id="importedQuestions" class="space-y-4 mb-6 overflow-y-auto flex-1 border border-slate-700 rounded-lg p-2"></div>
+    <div class="space-y-3 mt-auto pt-4">
+     <button id="addImportedBtn" class="w-full py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-700 text-sm">Distribusikan ke Pengaturan Soal</button> 
+     <button id="closeImportBtn" class="w-full py-2.5 rounded-lg bg-slate-600 hover:bg-slate-500 text-white font-600 text-sm">Batal</button>
+    </div>
+   </div>
+  </div>
+
+  <script>
+    if (window.pdfjsWorker) {
+      window.pdfjsWorker.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
+  <script>
+    // State
+    let sections = [
+      { id: 1, type: 'pg', label: 'Pilihan Ganda', start: 1, end: 20, columns: 2, answerStyle: 'none', options: 4, questions: [] },
+      { id: 2, type: 'isian', label: 'Isian Singkat', start: 21, end: 30, columns: 1, questions: [] },
+      { id: 3, type: 'essay', label: 'Uraian / Essay', start: 31, end: 35, columns: 1, questions: [] },
+    ];
+    let nextId = 4;
+
+    let defaultKopHtml = `<div style="font-weight:700; font-size:0.9em; text-transform:uppercase;">PEMERINTAH KABUPATEN BANDUNG</div>
+<div style="font-weight:700; font-size:1.15em; text-transform:uppercase;">DINAS PENDIDIKAN</div>
+<div style="font-size:0.85em; text-transform:uppercase;">SDN PALASARI 3</div>
+<div style="font-size:0.85em; text-transform:uppercase;">Jl. Pendidikan No. 1</div>`;
+    let kopContentHtml = defaultKopHtml;
+
+    // Elements
+    const sectionsContainer = document.getElementById('sectionsContainer');
+    const previewArea = document.getElementById('previewArea');
+    const printContent = document.getElementById('printContent');
+    const paperSelect = document.getElementById('paperSize');
+
+    // Utility: HTML Stripper for Dialog Previews
+    function stripHtml(html) {
+      let tmp = document.createElement("DIV");
+      tmp.innerHTML = html;
+      return tmp.textContent || tmp.innerText || "";
+    }
+
+    // Toast
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('translate-y-20','opacity-0');
+      setTimeout(() => t.classList.add('translate-y-20','opacity-0'), 2500);
+    }
+
+    // KOP Upload Handlers (Hanya Gambar)
+    document.getElementById('kopUpload').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          kopContentHtml = `<img src="${ev.target.result}" style="width:100%; max-height:110px; object-fit:contain; object-position:top;">`;
+          document.getElementById('kopPreviewContainer').classList.remove('hidden');
+          document.getElementById('resetKopBtn').classList.remove('hidden');
+          renderPreview();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        showToast('Tolong unggah file gambar yang valid.');
+      }
+      document.getElementById('kopUpload').value = '';
+    });
+
+    document.getElementById('resetKopBtn').addEventListener('click', () => {
+       kopContentHtml = defaultKopHtml;
+       document.getElementById('kopPreviewContainer').classList.add('hidden');
+       document.getElementById('resetKopBtn').classList.add('hidden');
+       renderPreview();
+    });
+
+    // Paper size
+    paperSelect.addEventListener('change', () => {
+      previewArea.className = `bg-white text-black rounded-lg shadow-2xl pt-[8mm] px-[15mm] pb-[15mm] print-area paper-${paperSelect.value}`;
+      renderPreview();
+    });
+
+    // Render sections UI
+    function renderSections() {
+      sectionsContainer.innerHTML = '';
+      sections.forEach((s, idx) => {
+        const div = document.createElement('div');
+        div.className = 'bg-slate-700/50 rounded-lg p-3 space-y-2 border border-slate-600';
+        div.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-700 text-sm text-emerald-300">${s.label}</span>
+            <button data-del="${s.id}" class="text-red-400 hover:text-red-300 p-1"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="text-[10px] text-slate-400">Tipe</label>
+              <select data-field="type" data-id="${s.id}" class="w-full bg-slate-600 border-0 rounded p-1.5 text-xs text-white outline-none focus:ring-1 focus:ring-emerald-500">
+                <option value="pg" ${s.type==='pg'?'selected':''}>Pilihan Ganda</option>
+                <option value="isian" ${s.type==='isian'?'selected':''}>Isian Singkat</option>
+                <option value="essay" ${s.type==='essay'?'selected':''}>Uraian / Essay</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400">No. Awal</label>
+              <input type="number" data-field="start" data-id="${s.id}" value="${s.start}" min="1" class="w-full bg-slate-600 border-0 rounded p-1.5 text-xs text-white outline-none focus:ring-1 focus:ring-emerald-500">
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400">No. Akhir</label>
+              <input type="number" data-field="end" data-id="${s.id}" value="${s.end}" min="1" class="w-full bg-slate-600 border-0 rounded p-1.5 text-xs text-white outline-none focus:ring-1 focus:ring-emerald-500">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] text-slate-400">Layout Kolom</label>
+              <select data-field="columns" data-id="${s.id}" class="w-full bg-slate-600 border-0 rounded p-1.5 text-xs text-white outline-none focus:ring-1 focus:ring-emerald-500">
+                <option value="1" ${s.columns==1?'selected':''}>1 Kolom</option>
+                <option value="2" ${s.columns==2?'selected':''}>2 Kolom</option>
+                <option value="3" ${s.columns==3?'selected':''}>3 Kolom</option>
+              </select>
+            </div>
+            ${s.type === 'pg' ? `
+            <div>
+              <label class="text-[10px] text-slate-400">Gaya Jawaban</label>
+              <select data-field="answerStyle" data-id="${s.id}" class="w-full bg-slate-600 border-0 rounded p-1.5 text-xs text-white outline-none focus:ring-1 focus:ring-emerald-500">
+                <option value="none" ${s.answerStyle==='none'?'selected':''}>Teks Asli + Opsi (Baca Word)</option>
+                <option value="vertical" ${s.answerStyle==='vertical'?'selected':''}>Vertikal Kosong (A/B/C/D)</option>
+                <option value="horizontal" ${s.answerStyle==='horizontal'?'selected':''}>Horizontal Kosong (A B C D)</option>
+                <option value="grid" ${s.answerStyle==='grid'?'selected':''}>Grid Kosong (A C / B D)</option>
+              </select>
+            </div>` : `<div></div>`}
+          </div>
+          ${s.type === 'pg' ? `
+          <div>
+            <label class="text-[10px] text-slate-400">Jumlah Opsi</label>
+            <select data-field="options" data-id="${s.id}" class="w-full bg-slate-600 border-0 rounded p-1.5 text-xs text-white outline-none focus:ring-1 focus:ring-emerald-500">
+              <option value="4" ${(s.options||4)==4?'selected':''}>4 (A-D)</option>
+              <option value="5" ${(s.options||4)==5?'selected':''}>5 (A-E)</option>
+            </select>
+          </div>` : ''}
+          <button data-edit-questions="${s.id}" class="w-full py-2 mt-1 rounded border border-slate-500 bg-slate-700 hover:bg-slate-600 text-white font-600 text-xs flex items-center justify-center gap-2 transition">
+            <i data-lucide="edit-3" style="width:12px;height:12px;"></i> Cek / Edit Teks Soal & Gambar
+          </button>
+        `;
+        sectionsContainer.appendChild(div);
+      });
+      lucide.createIcons();
+      
+      // Bind events
+      sectionsContainer.querySelectorAll('[data-del]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          sections = sections.filter(s => s.id != btn.dataset.del);
+          renderSections();
+          renderPreview();
+        });
+      });
+      
+      sectionsContainer.querySelectorAll('[data-field]').forEach(el => {
+        el.addEventListener('change', () => {
+          const sec = sections.find(s => s.id == el.dataset.id);
+          if (!sec) return;
+          const val = el.value;
+          const field = el.dataset.field;
+          if (field === 'start' || field === 'end' || field === 'columns' || field === 'options') {
+            sec[field] = parseInt(val);
+          } else {
+            sec[field] = val;
+          }
+          if (field === 'type') {
+            sec.label = el.options[el.selectedIndex].text;
+            if (val === 'pg') { sec.answerStyle = 'none'; sec.options = 4; }
+          }
+          renderSections();
+          renderPreview();
+        });
+      });
+
+      // Edit questions button
+      sectionsContainer.querySelectorAll('[data-edit-questions]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const secId = parseInt(btn.dataset.editQuestions);
+          openEditQuestionsDialog(secId);
+        });
+      });
+    }
+
+    // Add section
+    document.getElementById('addSectionBtn').addEventListener('click', () => {
+      const lastEnd = sections.length ? sections[sections.length-1].end : 0;
+      sections.push({ id: nextId++, type: 'pg', label: 'Pilihan Ganda', start: lastEnd+1, end: lastEnd+10, columns: 1, answerStyle: 'none', options: 4, questions: [] });
+      renderSections();
+      renderPreview();
+    });
+
+    // Auto fit scaling function
+    function applyPageScaling() {
+       const pages = document.getElementById('pageCount').value;
+       const previewArea = document.getElementById('previewArea');
+
+       // Reset scale
+       printContent.style.fontSize = '12px';
+
+       if (pages === 'auto') return;
+
+       const paper = document.getElementById('paperSize').value;
+       let heightMm = paper === 'a4' ? 297 : paper === 'f4' ? 330 : 356;
+       // max height = pages * (height - 30mm padding)
+       let maxInnerMm = (heightMm - 30) * parseInt(pages);
+       let targetPx = (maxInnerMm - 2) * 3.7795;
+
+       let fontSize = 12;
+       let step = 0.2;
+       let iter = 0;
+
+       if (printContent.scrollHeight > targetPx) {
+           while (printContent.scrollHeight > targetPx && fontSize > 4 && iter < 100) {
+               fontSize -= step;
+               printContent.style.fontSize = fontSize + 'px';
+               iter++;
+           }
+       } else {
+           while (printContent.scrollHeight < targetPx && fontSize < 24 && iter < 100) {
+               fontSize += step;
+               printContent.style.fontSize = fontSize + 'px';
+               iter++;
+           }
+           fontSize -= step; // back off one step
+           printContent.style.fontSize = fontSize + 'px';
+       }
+    }
+
+    // Render preview
+    function renderPreview() {
+      const judul = document.getElementById('judulUjian').value;
+      const tapel = document.getElementById('tahunPelajaran').value;
+      const mapel = document.getElementById('mapel').value;
+      const kelas = document.getElementById('kelas').value;
+      const waktu = document.getElementById('waktu').value;
+      const tanggal = document.getElementById('tanggal').value;
+
+      let html = '';
+      
+      // KOP (Menggunakan em agar dinamis terhadap auto-scaling, dan margin-top dinaikkan)
+      html += `<div style="text-align:center; border-bottom:3px solid #000; padding-bottom:0.4em; margin-bottom:1em; margin-top:-0.5em;">`;
+      html += kopContentHtml;
+      html += `</div>`;
+
+      // Title
+      html += `<div style="text-align:center; margin-bottom:1em;">
+        <div style="font-weight:700; font-size:1.1em; text-transform:uppercase;">${judul}</div>
+        <div style="font-size:0.9em;">${tapel}</div>
+      </div>`;
+
+      // Info
+      html += `<div style="display:grid; grid-template-columns:1fr 1fr; font-size:0.9em; margin-bottom:1.3em; gap:0.2em;">
+        <div>Mata Pelajaran : ${mapel}</div>
+        <div>Waktu : ${waktu}</div>
+        <div>Kelas : ${kelas}</div>
+        <div>Tanggal : ${tanggal || '-'}</div>
+      </div>`;
+
+      // Sections
+      sections.forEach(sec => {
+        const count = sec.end - sec.start + 1;
+        if (count <= 0) return;
+
+        html += `<div style="margin-bottom:1.2em;">`;
+        html += `<div style="font-weight:700; font-size:0.9em; margin-bottom:0.5em; text-transform:uppercase; border-bottom:1px solid #ccc; padding-bottom:0.25em;">${sec.label} (No. ${sec.start} - ${sec.end})</div>`;
+
+        // Questions in columns
+        html += `<div style="column-count:${sec.columns}; column-gap:1.6em;">`;
+        for (let i = sec.start; i <= sec.end; i++) {
+          const qIndex = i - sec.start;
+          const qData = sec.questions && sec.questions[qIndex] ? sec.questions[qIndex] : {};
+          
+          let qText = typeof qData === 'string' ? qData : (qData.text || '........................................................');
+          let qOptions = qData.options || []; 
+          let qImage = qData.image || null;
+          
+          html += `<div style="break-inside:avoid; margin-bottom:0.8em;">`;
+
+          // Menampilkan Soal Utama (Teks)
+          html += `<div style="font-size:0.9em; display:flex; gap:0.5em;">
+                     <strong>${i}.</strong>
+                     <div style="white-space:pre-wrap; flex:1; text-align: justify;">${qText}</div>
+                   </div>`;
+          
+          // Gambar Soal
+          if (qImage) {
+            html += `<div style="margin-left:1.3em; margin-top:0.5em; margin-bottom:0.6em;">
+              <img src="${qImage}" style="max-width:100%; max-height:120px; border:1px solid #ddd; border-radius:4px;">
+            </div>`;
+          }
+
+          // Gaya Pilihan Ganda
+          if (sec.type === 'pg') {
+            html += `<div style="margin-top:0.3em;">`;
+
+            if (sec.answerStyle === 'none') {
+               if (qOptions.length > 0) {
+                 html += `<div style="margin-left:1.3em; font-size:0.9em; display:flex; flex-direction:column; gap:0.2em;">`;
+                 qOptions.forEach(opt => {
+                   html += `<div>${opt}</div>`;
+                 });
+                 html += `</div>`;
+               } else {
+                 html += `<div style="font-size:0.8em; margin-left:1.3em; color:#888;">(Opsi dari file word tidak ditemukan)</div>`;
+               }
+            } 
+            else {
+              const optsCount = sec.options || 4;
+              const letters = 'ABCDE'.slice(0, optsCount).split('');
+              
+              if (sec.answerStyle === 'vertical') {
+                letters.forEach(l => {
+                  html += `<div style="font-size:0.85em; margin-left:1.3em;">${l}. ..................</div>`;
+                });
+              } else if (sec.answerStyle === 'horizontal') {
+                html += `<div style="font-size:0.85em; margin-left:1.3em; display:flex; gap:1em; flex-wrap:wrap;">`;
+                letters.forEach(l => { html += `<span>${l}. ............</span>`; });
+                html += `</div>`;
+              } else if (sec.answerStyle === 'grid') {
+                html += `<div style="font-size:0.85em; margin-left:1.3em; display:grid; grid-template-columns:1fr 1fr; gap:0.1em 1em;">`;
+                const half = Math.ceil(optsCount / 2);
+                const ordered = [];
+                for (let r = 0; r < half; r++) {
+                  ordered.push(letters[r]);
+                  if (letters[r + half]) ordered.push(letters[r + half]);
+                }
+                ordered.forEach(l => { html += `<span>${l}. ............</span>`; });
+                html += `</div>`;
+              }
+            }
+            html += `</div>`;
+          } else if (sec.type === 'isian' || sec.type === 'essay') {
+            html += `<div style="font-size:0.85em; margin-left:1.3em; border-bottom:1px dotted #999; height:1.5em;"></div>`;
+          }
+          html += `</div>`;
+        }
+        html += `</div></div>`;
+      });
+
+      printContent.innerHTML = html;
+      applyPageScaling();
+    }
+
+    // Preview / Print
+    document.getElementById('previewBtn').addEventListener('click', () => {
+      renderPreview();
+      window.print();
+    });
+
+    // Export JSON
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const data = {
+        kopHtml: kopContentHtml !== defaultKopHtml ? kopContentHtml : null,
+        judulUjian: document.getElementById('judulUjian').value,
+        tahunPelajaran: document.getElementById('tahunPelajaran').value,
+        mapel: document.getElementById('mapel').value,
+        kelas: document.getElementById('kelas').value,
+        waktu: document.getElementById('waktu').value,
+        tanggal: document.getElementById('tanggal').value,
+        paperSize: paperSelect.value,
+        pageCount: document.getElementById('pageCount').value,
+        sections
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'soal-config.json'; a.click();
+      URL.revokeObjectURL(url);
+      showToast('File JSON berhasil di-export!');
+    });
+
+    // Import JSON
+    document.getElementById('importFile').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (data.kopHtml) {
+             kopContentHtml = data.kopHtml;
+             document.getElementById('kopPreviewContainer').classList.remove('hidden');
+             document.getElementById('resetKopBtn').classList.remove('hidden');
+          } else {
+             kopContentHtml = defaultKopHtml;
+             document.getElementById('kopPreviewContainer').classList.add('hidden');
+             document.getElementById('resetKopBtn').classList.add('hidden');
+          }
+          if (data.judulUjian) document.getElementById('judulUjian').value = data.judulUjian;
+          if (data.tahunPelajaran) document.getElementById('tahunPelajaran').value = data.tahunPelajaran;
+          if (data.mapel) document.getElementById('mapel').value = data.mapel;
+          if (data.kelas) document.getElementById('kelas').value = data.kelas;
+          if (data.waktu) document.getElementById('waktu').value = data.waktu;
+          if (data.tanggal) document.getElementById('tanggal').value = data.tanggal;
+          if (data.pageCount) document.getElementById('pageCount').value = data.pageCount;
+          if (data.paperSize) { paperSelect.value = data.paperSize; previewArea.className = `bg-white text-black rounded-lg shadow-2xl pt-[8mm] px-[15mm] pb-[15mm] print-area paper-${data.paperSize}`; }
+          if (data.sections) { sections = data.sections; nextId = Math.max(...sections.map(s=>s.id)) + 1; }
+          renderSections();
+          renderPreview();
+          showToast('File JSON berhasil di-import!');
+        } catch(err) { showToast('Gagal membaca file!'); }
+      };
+      reader.readAsText(file);
+    });
+
+    // --- TEMPLATE GENERATOR TERBAIK ---
+    document.getElementById('downloadTemplateBtn').addEventListener('click', () => {
+      const htmlTemplate = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+          <meta charset='utf-8'>
+          <title>Template Soal</title>
+          <style>
+            body { font-family: 'Calibri', sans-serif; font-size: 12pt; }
+            p { margin: 0 0 5pt 0; }
+          </style>
+        </head>
+        <body>
+          <h2><span style="color:red">TEMPLATE SOAL UJIAN (FORMAT RESMI)</span></h2>
+          <p><strong>PETUNJUK:</strong></p>
+          <ol>
+            <li>Tulis nomor soal dengan format angka diikuti titik dan spasi. (Contoh: <strong>1. </strong>)</li>
+            <li>Untuk pilihan ganda, tulis dengan abjad huruf kecil/besar diikuti titik/kurung tutup. (Contoh: <strong>a.</strong> atau <strong>A.</strong> atau <strong>a)</strong>)</li>
+            <li>Anda BISA memasukkan/paste gambar langsung ke dalam dokumen ini di bawah pertanyaan.</li>
+            <li>Setelah selesai, <strong>Simpan/Save</strong> file ini tetap dalam format Word Document (.docx).</li>
+          </ol>
+          <hr>
+          <br>
+          <p>1. Hasil ringkasan berupa huruf atau gabungan huruf disebut...</p>
+          <p>a. Akronim</p>
+          <p>b. Singkatan</p>
+          <p>c. Sinonim</p>
+          <p>d. Antonim</p>
+          <p>&nbsp;</p>
+          <p>2. Hal (keadaan, peristiwa) yang merupakan <strong>kenyataan</strong> dan <em>benar-benar terjadi</em> disebut...</p>
+          <p>a. Opini</p>
+          <p>b. Cerita</p>
+          <p>c. Legenda</p>
+          <p>d. Fakta</p>
+          <p>&nbsp;</p>
+          <p>3. Isilah pertanyaan singkat di bawah ini dengan benar!</p>
+          <p>&nbsp;</p>
+          <p>4. Sebutkan dan jelaskan pengertian dari teks deskripsi secara singkat!</p>
+        </body>
+      </html>
+      `;
+
+      const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(htmlTemplate);
+      const fileDownload = document.createElement("a");
+      document.body.appendChild(fileDownload);
+      fileDownload.href = source;
+      fileDownload.download = `Template_Soal_Aplikasi.doc`;
+      fileDownload.click();
+      document.body.removeChild(fileDownload);
+      showToast('Template Word berhasil diunduh!');
+    });
+
+
+    // --- LOGIKA IMPORT WORD DOCX (MEMISAHKAN SOAL DAN OPSI JAWABAN) ---
+    let importedQuestionsMap = {}; 
+
+    document.getElementById('importDocFile').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      try {
+        importedQuestionsMap = {};
+        
+        if (file.name.endsWith('.pdf')) {
+          pdfjsWorker.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsWorker.getDocument(arrayBuffer).promise;
+          let text = '';
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            text += content.items.map(item => item.str).join('\n') + '\n';
+          }
+          
+          const questionRegex = /(?:^|\n|\r)\s*(\d+)\.\s+([\s\S]*?)(?=(?:\n|\r)\s*\d+\.\s+|$)/g;
+          let match;
+          while ((match = questionRegex.exec(text)) !== null) {
+            let qNum = parseInt(match[1]);
+            let qTextRaw = match[2].trim();
+            
+            let lines = qTextRaw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            let qLines = [];
+            let optLines = [];
+
+            lines.forEach(line => {
+               if (/^[a-eA-E][\.\)]\s/.test(line)) {
+                  optLines.push(line);
+               } else {
+                  qLines.push(line);
+               }
+            });
+
+            if (qLines.length > 0) {
+              importedQuestionsMap[qNum] = { text: qLines.join('\n'), options: optLines, image: null };
+            }
+          }
+        } else {
+          const arrayBuffer = await file.arrayBuffer();
+          const mammothOptions = {
+             styleMap: [
+                 "u => u",
+                 "strike => s",
+                 "sup => sup",
+                 "sub => sub"
+             ]
+          };
+          const result = await mammoth.convertToHtml({ arrayBuffer }, mammothOptions);
+          const htmlStr = result.value;
+
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = htmlStr;
+
+          let currentQNum = null;
+          let currentQText = [];
+          let currentOptions = [];
+          let currentQImage = null;
+
+          Array.from(tempDiv.childNodes).forEach(node => {
+            if (node.nodeType === 1) { 
+              let textContent = node.textContent.trim();
+              let imgNode = node.querySelector('img');
+
+              let matchQ = textContent.match(/^\s*(\d+)\.\s*(.*)/);
+              let matchOpt = textContent.match(/^[a-eA-E][\.\)]\s+(.*)/);
+
+              if (matchQ) {
+                if (currentQNum !== null) {
+                  importedQuestionsMap[currentQNum] = {
+                    text: currentQText.join('<br>').trim(),
+                    options: currentOptions,
+                    image: currentQImage
+                  };
+                }
+                
+                currentQNum = parseInt(matchQ[1]);
+                
+                // Mencegah gambar ikut ke dalam Teks Soal (menghindari duplicate)
+                if (imgNode) currentQImage = imgNode.src;
+                else currentQImage = null;
+                
+                let clone = node.cloneNode(true);
+                clone.querySelectorAll('img').forEach(img => img.remove());
+                
+                let walker = document.createTreeWalker(clone, NodeFilter.SHOW_TEXT, null, false);
+                let firstText = walker.nextNode();
+                if (firstText) {
+                    firstText.nodeValue = firstText.nodeValue.replace(/^\s*\d+\.\s*/, '');
+                }
+                currentQText = [clone.innerHTML.trim()];
+                currentOptions = [];
+              } else if (currentQNum !== null) {
+                
+                if (imgNode && !currentQImage) {
+                   currentQImage = imgNode.src;
+                }
+                
+                let clone = node.cloneNode(true);
+                clone.querySelectorAll('img').forEach(img => img.remove());
+                let cleanedHtml = clone.innerHTML.trim();
+                let hasText = clone.textContent.trim().length > 0;
+                
+                if (hasText) {
+                   if (matchOpt) {
+                      currentOptions.push(cleanedHtml); 
+                   } else {
+                      currentQText.push(cleanedHtml); 
+                   }
+                }
+              }
+            }
+          });
+
+          if (currentQNum !== null) {
+            importedQuestionsMap[currentQNum] = {
+              text: currentQText.join('<br>').trim(),
+              options: currentOptions,
+              image: currentQImage
+            };
+          }
+        }
+
+        if (Object.keys(importedQuestionsMap).length === 0) {
+          showToast('⚠️ Tidak ada soal terdeteksi! Gunakan format nomor yang benar.');
+          return;
+        }
+
+        showImportDialog();
+      } catch (err) {
+        showToast('❌ Gagal membaca file!');
+        console.error('Error reading file:', err);
+      }
+      
+      document.getElementById('importDocFile').value = '';
+    });
+
+    function showImportDialog() {
+      const dialog = document.getElementById('importDialog');
+      const container = document.getElementById('importedQuestions');
+      container.innerHTML = '';
+      
+      Object.keys(importedQuestionsMap).sort((a,b)=>a-b).forEach((qNum) => {
+        const qObj = importedQuestionsMap[qNum];
+        const div = document.createElement('div');
+        div.className = 'bg-slate-700/50 border border-slate-600 rounded-lg p-3';
+        
+        let optHtml = '';
+        if (qObj.options && qObj.options.length > 0) {
+           optHtml = `<div class="mt-2 pl-4 text-[11px] text-slate-400 space-y-1">` + 
+                     qObj.options.map(o => `<div>${stripHtml(o)}</div>`).join('') + 
+                     `</div>`;
+        }
+
+        let plainText = stripHtml(qObj.text);
+        let textPreview = plainText.substring(0, 100) + (plainText.length > 100 ? '...' : '');
+
+        div.innerHTML = `
+          <div class="text-sm text-slate-300">
+            <span class="font-bold text-emerald-400">No. ${qNum}</span>: <br>
+            <span style="white-space: pre-wrap;">${textPreview}</span>
+            ${qObj.image ? `<br><img src="${qObj.image}" style="max-height:60px; margin-top:8px; border-radius:4px; border:1px solid #475569;">` : ''}
+            ${optHtml}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      dialog.classList.remove('hidden');
+    }
+
+    document.getElementById('addImportedBtn').addEventListener('click', () => {
+      sections.forEach(sec => {
+        if (!sec.questions) sec.questions = [];
+        const count = sec.end - sec.start + 1;
+        
+        for (let i = 0; i < count; i++) {
+          const actualQNum = sec.start + i;
+          if (importedQuestionsMap[actualQNum]) {
+            const importedQ = importedQuestionsMap[actualQNum];
+            const oldImage = (sec.questions[i] && typeof sec.questions[i] === 'object') ? sec.questions[i].image : null;
+            
+            sec.questions[i] = { 
+                text: importedQ.text, 
+                options: importedQ.options,
+                image: importedQ.image || oldImage 
+            };
+          }
+        }
+      });
+
+      renderSections();
+      renderPreview();
+      showToast(`Soal berhasil didistribusikan!`);
+      document.getElementById('importDialog').classList.add('hidden');
+    });
+
+    document.getElementById('closeImportBtn').addEventListener('click', () => {
+      document.getElementById('importDialog').classList.add('hidden');
+    });
+
+    // --- DIALOG EDIT SOAL MANUAL (RICH TEXT) ---
+    let currentEditingSecId = null;
+
+    function openEditQuestionsDialog(secId) {
+      const sec = sections.find(s => s.id === secId);
+      if (!sec) return;
+      
+      currentEditingSecId = secId;
+      const container = document.getElementById('editQuestionsContainer');
+      container.innerHTML = '';
+      
+      const count = sec.end - sec.start + 1;
+      for (let i = 0; i < count; i++) {
+        const qNum = sec.start + i;
+        const qData = sec.questions && sec.questions[i] ? sec.questions[i] : {};
+        const qText = typeof qData === 'string' ? qData : (qData.text || '');
+        const qImage = qData.image || null;
+        
+        const div = document.createElement('div');
+        div.className = 'bg-slate-700 rounded-lg p-4 border border-slate-600';
+        div.dataset.qIndex = i;
+        div.innerHTML = `
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-700 text-sm text-emerald-300">Soal ${qNum}</h3>
+            ${qImage ? `<span class="text-[10px] bg-emerald-600 px-2 py-1 rounded text-white font-bold">📷 Ber-Gambar</span>` : ''}
+          </div>
+          <div class="space-y-3">
+            <div>
+              <label class="text-[11px] font-bold text-slate-300 block mb-1">Teks Soal</label>
+              
+              <div class="flex flex-wrap items-center gap-1 mb-2 p-1 bg-slate-800 rounded border border-slate-600 shadow-sm">
+                  <button type="button" onmousedown="event.preventDefault(); document.execCommand('bold', false, null)" class="w-7 h-7 flex items-center justify-center bg-slate-700 hover:bg-slate-600 rounded text-white font-bold text-xs transition" title="Bold">B</button>
+                  <button type="button" onmousedown="event.preventDefault(); document.execCommand('italic', false, null)" class="w-7 h-7 flex items-center justify-center bg-slate-700 hover:bg-slate-600 rounded text-white italic text-xs transition" title="Italic">I</button>
+                  <button type="button" onmousedown="event.preventDefault(); document.execCommand('underline', false, null)" class="w-7 h-7 flex items-center justify-center bg-slate-700 hover:bg-slate-600 rounded text-white underline text-xs transition" title="Underline">U</button>
+                  <button type="button" onmousedown="event.preventDefault(); document.execCommand('strikeThrough', false, null)" class="w-7 h-7 flex items-center justify-center bg-slate-700 hover:bg-slate-600 rounded text-white line-through text-xs transition" title="Strikethrough">S</button>
+                  <button type="button" onmousedown="event.preventDefault(); document.execCommand('subscript', false, null)" class="w-7 h-7 flex items-center justify-center bg-slate-700 hover:bg-slate-600 rounded text-white text-[10px] transition" title="Subscript">x₂</button>
+                  <button type="button" onmousedown="event.preventDefault(); document.execCommand('superscript', false, null)" class="w-7 h-7 flex items-center justify-center bg-slate-700 hover:bg-slate-600 rounded text-white text-[10px] transition" title="Superscript">x²</button>
+                  <div class="w-px h-5 bg-slate-600 mx-1"></div>
+                  <div class="flex items-center gap-1 bg-slate-700 hover:bg-slate-600 px-1.5 py-1 rounded transition" title="Warna Teks">
+                      <span class="text-[11px] font-bold text-slate-200">A</span>
+                      <input type="color" onchange="document.execCommand('foreColor', false, this.value)" class="w-4 h-4 p-0 border-0 bg-transparent cursor-pointer">
+                  </div>
+                  <div class="flex items-center gap-1 ml-0.5 bg-slate-700 hover:bg-slate-600 px-1.5 py-1 rounded transition" title="Warna Highlight">
+                      <span class="text-[11px] bg-yellow-400 text-black font-bold px-0.5 rounded-sm">A</span>
+                      <input type="color" onchange="document.execCommand('hiliteColor', false, this.value)" class="w-4 h-4 p-0 border-0 bg-transparent cursor-pointer">
+                  </div>
+              </div>
+              
+              <div contenteditable="true" class="w-full bg-slate-800 border border-slate-600 rounded p-2.5 text-sm text-white focus:ring-1 focus:ring-emerald-500 focus:outline-none question-text min-h-[80px] max-h-[250px] overflow-y-auto whitespace-pre-wrap">${qText}</div>
+            </div>
+            
+            <div>
+              <label class="text-[11px] font-bold text-slate-300 block mb-1">Upload / Ganti Gambar (Opsional)</label>
+              <div class="flex gap-2">
+                <label class="flex-1 py-2 rounded bg-slate-600 hover:bg-slate-500 text-white font-600 text-xs flex items-center justify-center gap-2 transition cursor-pointer">
+                  <i data-lucide="upload" style="width:12px;height:12px;"></i> Pilih Gambar
+                  <input type="file" accept="image/*" class="hidden question-image" data-index="${i}">
+                </label>
+                ${qImage ? `<button class="py-2 px-3 rounded bg-red-600/80 hover:bg-red-500 text-white font-600 text-xs remove-image" data-index="${i}"><i data-lucide="trash" style="width:12px;height:12px;"></i></button>` : ''}
+              </div>
+              ${qImage ? `<div class="mt-2 p-2 bg-slate-800 rounded border border-slate-600 inline-block">
+                <img src="${qImage}" style="max-width:100%; max-height:80px; border-radius:4px;">
+              </div>` : ''}
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      }
+      
+      lucide.createIcons();
+      
+      container.querySelectorAll('.question-image').forEach(input => {
+        input.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const qIndex = parseInt(input.dataset.index);
+            const sec = sections.find(s => s.id === currentEditingSecId);
+            if (!sec.questions) sec.questions = [];
+            if (typeof sec.questions[qIndex] === 'string') {
+              sec.questions[qIndex] = { text: sec.questions[qIndex], image: ev.target.result };
+            } else if (!sec.questions[qIndex]) {
+              sec.questions[qIndex] = { text: '', image: ev.target.result };
+            } else {
+              sec.questions[qIndex].image = ev.target.result;
+            }
+            
+            // Simpan perubahan teks sementara sebelum render ulang
+            const currentEditors = container.querySelectorAll('.question-text');
+            if(currentEditors[qIndex]) {
+               sec.questions[qIndex].text = currentEditors[qIndex].innerHTML;
+            }
+
+            openEditQuestionsDialog(currentEditingSecId);
+          };
+          reader.readAsDataURL(file);
+        });
+      });
+      
+      container.querySelectorAll('.remove-image').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const qIndex = parseInt(btn.dataset.index);
+          const sec = sections.find(s => s.id === currentEditingSecId);
+          if (sec.questions && typeof sec.questions[qIndex] === 'object') {
+            sec.questions[qIndex].image = null;
+          }
+          openEditQuestionsDialog(currentEditingSecId);
+        });
+      });
+      
+      document.getElementById('editQuestionsDialog').classList.remove('hidden');
+    }
+
+    document.getElementById('closeEditQuestionsBtn').addEventListener('click', () => {
+      document.getElementById('editQuestionsDialog').classList.add('hidden');
+      currentEditingSecId = null;
+    });
+
+    document.getElementById('cancelEditQuestionsBtn').addEventListener('click', () => {
+      document.getElementById('editQuestionsDialog').classList.add('hidden');
+      currentEditingSecId = null;
+    });
+
+    document.getElementById('saveEditQuestionsBtn').addEventListener('click', () => {
+      const sec = sections.find(s => s.id === currentEditingSecId);
+      if (!sec) return;
+      
+      document.getElementById('editQuestionsContainer').querySelectorAll('[data-q-index]').forEach((div, idx) => {
+        const editorDiv = div.querySelector('.question-text');
+        const qText = editorDiv ? editorDiv.innerHTML : ''; // Ambil format HTML langsung
+        
+        const oldQData = sections.find(s => s.id === currentEditingSecId).questions[idx];
+        const image = oldQData && typeof oldQData === 'object' ? oldQData.image : null;
+        const options = oldQData && typeof oldQData === 'object' ? oldQData.options : [];
+        
+        sec.questions[idx] = { text: qText, image, options };
+      });
+      
+      renderPreview();
+      showToast('Perubahan Teks & Gambar berhasil disimpan!');
+      document.getElementById('editQuestionsDialog').classList.add('hidden');
+      currentEditingSecId = null;
+    });
+
+    // Auto-update preview on input changes
+    ['mapel','kelas','waktu','tanggal','judulUjian','tahunPelajaran'].forEach(id => {
+      document.getElementById(id).addEventListener('input', renderPreview);
+    });
+    document.getElementById('pageCount').addEventListener('change', renderPreview);
+
+    // Init Element SDK
+    const defaultConfig = { app_title: 'Aplikasi Pembuat Soal' };
+
+    window.elementSdk.init({
+      defaultConfig,
+      onConfigChange: async (config) => {
+        const title = config.app_title || defaultConfig.app_title;
+        document.getElementById('appTitle').textContent = title;
+      },
+      mapToCapabilities: (config) => ({
+        recolorables: [],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      }),
+      mapToEditPanelValues: (config) => new Map([
+        ['app_title', config.app_title || defaultConfig.app_title]
+      ])
+    });
+
+    renderSections();
+    renderPreview();
+    lucide.createIcons();
+  </script>
+ </body>
+</html>
