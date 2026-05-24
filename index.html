@@ -162,7 +162,7 @@
    <div class="bg-slate-800 rounded-xl p-6 w-full max-w-lg border border-slate-700 max-h-[90vh] flex flex-col">
     <h2 class="text-xl font-700 text-emerald-400 mb-2">Import Soal dari Document</h2>
     <p class="text-xs text-slate-300 mb-4 bg-slate-700 p-3 rounded-lg border border-slate-600 leading-relaxed">
-      ✅ <strong class="text-emerald-400">Peringatan:</strong> Pastikan Anda telah mengatur "No. Awal" dan "No. Akhir" di panel kiri sesuai dengan jumlah soal yang diimport. Soal akan otomatis didistribusikan.
+     ✅ <strong class="text-emerald-400">Peringatan:</strong> Pastikan Anda telah mengatur "No. Awal" dan "No. Akhir" di panel kiri sesuai dengan jumlah soal yang diimport. Soal akan otomatis didistribusikan.
     </p>
     <div id="importedQuestions" class="space-y-4 mb-6 overflow-y-auto flex-1 border border-slate-700 rounded-lg p-2"></div>
     <div class="space-y-3 mt-auto pt-4">
@@ -667,6 +667,33 @@
               importedQuestionsMap[qNum] = { text: qLines.join('\n'), options: optLines, image: null };
             }
           }
+
+          // Fallback cerdas untuk PDF tanpa penomoran
+          if (Object.keys(importedQuestionsMap).length === 0) {
+              let autoCounter = 1;
+              let paragraphs = text.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 0);
+              let currentQText = [];
+              let currentOptions = [];
+              
+              paragraphs.forEach(p => {
+                 let lines = p.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                 let matchOpt = lines[0].match(/^[a-eA-E][\.\)]\s+(.*)/);
+                 if (matchOpt || (currentQText.length > 0 && lines.length >= 2 && lines.length <= 5 && lines.every(l => l.length < 50))) {
+                     currentOptions.push(...lines);
+                 } else {
+                     if (currentQText.length > 0) {
+                         importedQuestionsMap[autoCounter++] = { text: currentQText.join('<br>'), options: currentOptions, image: null };
+                         currentQText = [];
+                         currentOptions = [];
+                     }
+                     currentQText.push(p.replace(/\n/g, '<br>'));
+                 }
+              });
+              if (currentQText.length > 0) {
+                 importedQuestionsMap[autoCounter++] = { text: currentQText.join('<br>'), options: currentOptions, image: null };
+              }
+          }
+
         } else {
           const arrayBuffer = await file.arrayBuffer();
           const mammothOptions = {
@@ -674,7 +701,8 @@
                  "u => u",
                  "strike => s",
                  "sup => sup",
-                 "sub => sub"
+                 "sub => sub",
+                 "p[style-name='List Paragraph'] => li:fresh" 
              ]
           };
           const result = await mammoth.convertToHtml({ arrayBuffer }, mammothOptions);
@@ -684,45 +712,63 @@
           tempDiv.innerHTML = htmlStr;
 
           let currentQNum = null;
+          let autoCounter = 1;
           let currentQText = [];
           let currentOptions = [];
           let currentQImage = null;
 
-          Array.from(tempDiv.childNodes).forEach(node => {
-            if (node.nodeType === 1) { 
+          function processNode(node) {
+            if (node.nodeType === 1) {
+              if (node.tagName === 'UL' || node.tagName === 'OL' || node.tagName === 'TABLE' || node.tagName === 'TBODY' || node.tagName === 'TR') {
+                Array.from(node.childNodes).forEach(processNode);
+                return;
+              }
+              
               let textContent = node.textContent.trim();
-              let imgNode = node.querySelector('img');
+              let imgNode = node.tagName === 'IMG' ? node : node.querySelector('img');
+              if (textContent.length === 0 && !imgNode) return;
 
               let matchQ = textContent.match(/^\s*(\d+)\.\s*(.*)/);
-              let matchOpt = textContent.match(/^[a-eA-E][\.\)]\s+(.*)/);
+              let matchOpt = textContent.match(/^\s*[a-eA-E][\.\)]\s+(.*)/);
+              let isLi = node.tagName === 'LI' || node.tagName === 'TD';
 
+              let isNewQuestion = false;
               if (matchQ) {
-                if (currentQNum !== null) {
-                  importedQuestionsMap[currentQNum] = {
+                isNewQuestion = true;
+              } else if (!matchOpt && !isLi && currentOptions.length >= 2 && textContent.length > 5) {
+                isNewQuestion = true;
+              } else if (currentQNum === null && currentQText.length === 0 && !matchOpt && !isLi) {
+                isNewQuestion = true;
+              }
+
+              if (isNewQuestion) {
+                if (currentQNum !== null || currentQText.length > 0) {
+                  let qIndex = currentQNum !== null ? currentQNum : autoCounter++;
+                  importedQuestionsMap[qIndex] = {
                     text: currentQText.join('<br>').trim(),
                     options: currentOptions,
                     image: currentQImage
                   };
                 }
+
+                currentQNum = matchQ ? parseInt(matchQ[1]) : null;
+                if(matchQ) autoCounter = currentQNum + 1;
                 
-                currentQNum = parseInt(matchQ[1]);
-                
-                // Mencegah gambar ikut ke dalam Teks Soal (menghindari duplicate)
                 if (imgNode) currentQImage = imgNode.src;
                 else currentQImage = null;
-                
+
                 let clone = node.cloneNode(true);
                 clone.querySelectorAll('img').forEach(img => img.remove());
                 
                 let walker = document.createTreeWalker(clone, NodeFilter.SHOW_TEXT, null, false);
                 let firstText = walker.nextNode();
-                if (firstText) {
+                if (firstText && matchQ) {
                     firstText.nodeValue = firstText.nodeValue.replace(/^\s*\d+\.\s*/, '');
                 }
+                
                 currentQText = [clone.innerHTML.trim()];
                 currentOptions = [];
-              } else if (currentQNum !== null) {
-                
+              } else if (currentQNum !== null || currentQText.length > 0) {
                 if (imgNode && !currentQImage) {
                    currentQImage = imgNode.src;
                 }
@@ -735,16 +781,21 @@
                 if (hasText) {
                    if (matchOpt) {
                       currentOptions.push(cleanedHtml); 
+                   } else if (isLi && currentQText.length > 0) {
+                      currentOptions.push(cleanedHtml);
                    } else {
                       currentQText.push(cleanedHtml); 
                    }
                 }
               }
             }
-          });
+          }
 
-          if (currentQNum !== null) {
-            importedQuestionsMap[currentQNum] = {
+          Array.from(tempDiv.childNodes).forEach(processNode);
+
+          if (currentQText.length > 0) {
+            let qIndex = currentQNum !== null ? currentQNum : autoCounter++;
+            importedQuestionsMap[qIndex] = {
               text: currentQText.join('<br>').trim(),
               options: currentOptions,
               image: currentQImage
